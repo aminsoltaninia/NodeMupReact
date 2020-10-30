@@ -3,10 +3,14 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const session = require('express-session');
+const fileStore = require('session-file-store')(session);
 const indexRouter = require('./routes/index');
-
+const passport = require('passport');
+const authenticate = require('./authenticate');
 // add mongoose
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const cons = require('consolidate');
 const url = 'mongodb://localhost:27017/confusion';
 const connect =  mongoose.connect(url , {useNewUrlParser: true, useUnifiedTopology: true})
 connect.then((db)=>{
@@ -26,7 +30,45 @@ app.set('view engine', 'html');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+
+// cookie
+//app.use(cookieParser('&5$&()rueurerg65646$$^%^^Aawe22@!!)+'));
+
+// session cookie
+app.use(session({
+  name : 'remember me',
+  secret : '&5$&()rueurerg65646$$^%^^Aawe22@!!)+',
+  saveUninitialized : false ,
+  resave  : false ,
+  store : new fileStore(),
+  cookie : {expires :  new Date(Date.now()+ 900000) }
+}))
+
+// call login user and serialize 
+app.use(passport.initialize());
+app.use(passport.session())
+
+const homeRouter = require('./routes/home')
+app.use('/' , homeRouter )
+
+userRouter = require('./routes/users')
+app.use('/users' , userRouter)
+
+
+function auth(req , res , next ){
+ 
+   if(!req.user){
+        var err = new Error('you are not authenticated!');
+        err.status = 401 ;
+        return next(err )
+   }
+   else{
+       next();
+   } 
+
+}
+app.use(auth);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
