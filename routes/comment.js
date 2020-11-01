@@ -3,10 +3,13 @@ const commentRouter = express.Router();
 const bodyparser = require('body-parser')
 const Dishes = require('../models/dishes');
 const Comments = require('../models/comments');
+const authenticate = require('../authenticate');
+const cors = require('./cors');
 commentRouter.use(bodyparser.json())
 
 commentRouter.route('/:dishId/comments')
-    .get(async (req, res, next) => {
+    .options(cors.corsWithOptions , (req, res)=> { res.sendStatus(200) })
+    .get(cors.cors ,async (req, res, next) => {
         try {
             //let comments  = await Comments.find({dishID:req.params.dishId}).exec()
             let dish = await Dishes.findById(req.params.dishId).populate({
@@ -24,7 +27,7 @@ commentRouter.route('/:dishId/comments')
 
     })
 
-    .post(async (req, res, next) => {
+    .post(cors.corsWithOptions ,authenticate.verifyUser ,async (req, res, next) => {
         try {
             let dish = await Dishes.findById(req.params.dishId).populate({
                 path: 'comments'
@@ -52,7 +55,7 @@ commentRouter.route('/:dishId/comments')
     })
 
 
-    .put(async (req, res, next) => {
+    .put(cors.corsWithOptions ,authenticate.verifyUser  ,async (req, res, next) => {
         try {
             res.statusCode = 403
             res.end("put operation not suported on dishes")
@@ -62,7 +65,7 @@ commentRouter.route('/:dishId/comments')
     })
 
 
-    .delete(async (req, res, next) => {
+    .delete(cors.corsWithOptions ,authenticate.verifyUser ,async (req, res, next) => {
         try {
             let dish = await Dishes.findById(req.params.dishId).populate({
                 path: 'comments'
@@ -82,7 +85,8 @@ commentRouter.route('/:dishId/comments')
 
 
 commentRouter.route('/:dishId/comments/:commentId')
-    .get(async (req, res, next) => {
+    .options(cors.corsWithOptions , (req, res)=> { res.sendStatus(200) })
+    .get(cors.cors ,async (req, res, next) => {
         try {
             let comment = await Comment.findById(req.params.commentId).exec();
             if(!comment){
@@ -96,7 +100,7 @@ commentRouter.route('/:dishId/comments/:commentId')
         }
     })
 
-    .post(async (req, res, next) => {
+    .post(cors.corsWithOptions ,authenticate.verifyUser , async (req, res, next) => {
         try {
             res.statusCode = 403
             res.end("post operation not suported on dishes")
@@ -106,7 +110,7 @@ commentRouter.route('/:dishId/comments/:commentId')
     })
 
 
-    .put(async (req, res, next) => {
+    .put(cors.corsWithOptions ,authenticate.verifyUser ,async (req, res, next) => {
         try {
 
             let comment = await Comments.findById(req.params.commentId).exec()
@@ -129,7 +133,7 @@ commentRouter.route('/:dishId/comments/:commentId')
         }
     })
 
-    .delete(async (req, res, next) => {
+    .delete(cors.corsWithOptions ,authenticate.verifyUser ,async (req, res, next) => {
         try {
             let comment = await Comments.findById(req.params.commentId).exec()
             if(!comment){

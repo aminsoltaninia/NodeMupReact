@@ -1,20 +1,30 @@
 const express = require('express')
 const Router = express.Router()
-
+const homeRouter = require('./home')
+const userRouter = require('./users')
+const dishRouter  = require('./dish')
+const commentRouter = require('./comment')
+const uploadRouter = require('./upload')
 
 /// dishe rotes
-const dishRouter  = require('./dish')
+
 Router.use('/dishes' , dishRouter)
+
+// upload router
+
+Router.use('/upload' , uploadRouter)
+
 //comment 
-const commentRouter = require('./comment')
+
 Router.use('/dishes' , commentRouter)
 
 // // home
-// const homeRouter = require('./home')
-// Router.use('/' , homeRouter )
+
+Router.use('/' , homeRouter )
+
 // // user 
-// userRouter = require('./users')
-// Router.use('/users' , userRouter)
+
+Router.use('/users' , userRouter)
 
 // corporate routes 
 

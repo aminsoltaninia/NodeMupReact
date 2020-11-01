@@ -4,6 +4,7 @@ var router = express.Router();
 const User = require('../models/user');
 router.use(bodyparser.json());
 const passport = require('passport');
+const authenticate  = require('../authenticate')
 
 /* GET users listing. */
 
@@ -51,14 +52,16 @@ router.post('/signup',  (req, res, next) => {
 
 router.post('/login', passport.authenticate('local') , (req, res) => {
   
+    const token = authenticate.getToken({_id : req.user._id})// pass user id to  gettoken to create token
     
+
     // immplement login method with passport 
        
     res.statusCode = 200 ;
     res.setHeader('Content-Type' , 'application/json');
-    res.json({success : true , status : 'your login successful success'})
+    res.json({success : true , token : token , status : 'your login successful success'})
       
-    // if (!req.session.user) {
+    // if (!req.session.user) { 
 
     //   var authHeader = req.headers.authorization;
 

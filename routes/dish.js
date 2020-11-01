@@ -2,11 +2,14 @@ const express = require('express')
 const dishRouter = express.Router();
 const bodyparser = require('body-parser')
 const Dishes = require('../models/dishes')
+const authenticate = require('../authenticate');
+const cors = require('./cors');
 dishRouter.use(bodyparser.json())
 
 
-
-dishRouter.get('/' ,async (req,res,next)=>{
+dishRouter.route('/')
+.options(cors.corsWithOptions , (req, res)=> { res.sendStatus(200) })
+.get( cors.cors , async (req,res,next)=>{
     try {
         let dishes = await Dishes.find({}).exec();
         return res.json(dishes)
@@ -16,7 +19,7 @@ dishRouter.get('/' ,async (req,res,next)=>{
    
 })
 
-dishRouter.post( '/' ,async(req,res,next)=>{
+.post(cors.corsWithOptions , authenticate.verifyUser ,async(req,res,next)=>{
     try {
         let {name , description , image , category , label ,price , featured} = req.body
         let newDish = new Dishes({
@@ -39,7 +42,7 @@ dishRouter.post( '/' ,async(req,res,next)=>{
 })
 
 
-dishRouter.put('/',async (req,res,next)=>{
+.put(cors.corsWithOptions , authenticate.verifyUser, async (req,res,next)=>{
     try {
        res.statusCode = 403 
        res.end("put operation not suported on dishes")
@@ -49,7 +52,7 @@ dishRouter.put('/',async (req,res,next)=>{
 })
 
 
-dishRouter.delete('/',async (req,res,next)=>{
+.delete(cors.corsWithOptions , authenticate.verifyUser , async (req,res,next)=>{
     try {
         let dishes = await Dishes.find({}).exec()
         dishes.forEach(async(dish)=> {
@@ -60,8 +63,9 @@ dishRouter.delete('/',async (req,res,next)=>{
     }
 })
 
-
-dishRouter.get('/:dishId' , async(req,res,next)=>{
+dishRouter.route('/:dishId')
+.options(cors.corsWithOptions , (req, res)=> { res.sendStatus(200) })
+.get(cors.cors ,  async(req,res,next)=>{
     try {
         let dish = await Dishes.findById(req.params.dishId).exec();
         return res.json(dish)
@@ -70,7 +74,7 @@ dishRouter.get('/:dishId' , async(req,res,next)=>{
     }
 })
 
-dishRouter.post('/:dishId' , async(req,res,next)=>{
+.post(cors.corsWithOptions , authenticate.verifyUser, async(req,res,next)=>{
     try {
         res.statusCode = 403 
         res.end("post operation not suported on dishes")
@@ -80,7 +84,7 @@ dishRouter.post('/:dishId' , async(req,res,next)=>{
 })
 
 
-dishRouter.put('/:dishId' , async(req,res,next)=>{
+.put(cors.corsWithOptions , authenticate.verifyUser, async(req,res,next)=>{
     try {
         
         let dish = await Dishes.findById(req.params.dishId).exec()
@@ -98,7 +102,7 @@ dishRouter.put('/:dishId' , async(req,res,next)=>{
     }
 })
 
-dishRouter.delete('/:dishId' ,async (req,res,next)=>{
+.delete(cors.corsWithOptions , authenticate.verifyUser,async (req,res,next)=>{
     try {
         let dish = await Dishes.findById(req.params.id).exec()
         await dish.remove();

@@ -6,12 +6,14 @@ const logger = require('morgan');
 const session = require('express-session');
 const fileStore = require('session-file-store')(session);
 const indexRouter = require('./routes/index');
+const userRouter = require('./routes/users')
 const passport = require('passport');
 const authenticate = require('./authenticate');
+const config = require('./config/index')
 // add mongoose
 const mongoose = require('mongoose');
 const cons = require('consolidate');
-const url = 'mongodb://localhost:27017/confusion';
+const url = config.mongoUrl;
 const connect =  mongoose.connect(url , {useNewUrlParser: true, useUnifiedTopology: true})
 connect.then((db)=>{
   console.log("Connected corectly to server")
@@ -20,6 +22,10 @@ connect.then((db)=>{
 //express  
 
 const app = express();
+app.all('*' , (req,res,next)=>{
+   if(req.secure) return next();
+   else res.redirect( 307 ,'https://' + req.hostname + ':' + app.get('secPort') + req.url)
+})
 
 // view engine setup
 
@@ -35,43 +41,43 @@ app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser('&5$&()rueurerg65646$$^%^^Aawe22@!!)+'));
 
 // session cookie
-app.use(session({
-  name : 'remember me',
-  secret : '&5$&()rueurerg65646$$^%^^Aawe22@!!)+',
-  saveUninitialized : false ,
-  resave  : false ,
-  store : new fileStore(),
-  cookie : {expires :  new Date(Date.now()+ 900000) }
-}))
+// app.use(session({
+//   name : 'remember me',
+//   secret : config.secretKey,
+//   saveUninitialized : false ,
+//   resave  : false ,
+//   store : new fileStore(),
+//   cookie : {expires :  new Date(Date.now()+ 900000) }
+// }))
 
 // call login user and serialize 
 app.use(passport.initialize());
-app.use(passport.session())
+// app.use(passport.session())
 
-const homeRouter = require('./routes/home')
-app.use('/' , homeRouter )
+// const homeRouter = require('./routes/home')
+// app.use('/' , homeRouter )
 
-userRouter = require('./routes/users')
-app.use('/users' , userRouter)
+app.use('/', indexRouter);
+// app.use('/users' , userRouter)
 
 
-function auth(req , res , next ){
+// function auth(req , res , next ){
  
-   if(!req.user){
-        var err = new Error('you are not authenticated!');
-        err.status = 401 ;
-        return next(err )
-   }
-   else{
-       next();
-   } 
+//    if(!req.user){
+//         var err = new Error('you are not authenticated!');
+//         err.status = 401 ;
+//         return next(err )
+//    }
+//    else{
+//        next();
+//    } 
 
-}
-app.use(auth);
+// }
+// app.use(auth);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+
 
 // catch 404 and forward to error handler
 
